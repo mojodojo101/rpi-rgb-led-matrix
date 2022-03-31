@@ -277,6 +277,41 @@ private:
   int parallel_;
 };
 
+class CubePixelMapper : public PixelMapper {
+public:
+  CubePixelMapper() : angle_(0) {}
+
+  virtual const char *GetName() const { return "Cube"; }
+
+  virtual bool SetParameters(int chain, int parallel, const char *param) {
+    return true;
+  }
+
+  virtual bool GetSizeMapping(int matrix_width, int matrix_height,
+                              int *visible_width, int *visible_height) const {
+    *visible_width = matrix_width-64;
+    *visible_height = matrix_height;
+    return true;
+  }
+
+  virtual void MapVisibleToMatrix(int matrix_width, int matrix_height,
+		  int x, int y,
+		  int *matrix_x, int *matrix_y) const {
+	  //third panel has false roatation, this is a dirty fix
+	  if ( x >= 128) {
+		  *matrix_x = x;
+		  *matrix_y = y;
+	  }
+	  else {
+		  *matrix_x = matrix_width - x - 1;
+		  *matrix_y = matrix_height - y - 1;
+	  }
+  }
+
+
+private:
+  int angle_;
+};
 
 typedef std::map<std::string, PixelMapper*> MapperByName;
 static void RegisterPixelMapperInternal(MapperByName *registry,
@@ -296,7 +331,7 @@ static MapperByName *CreateMapperMap() {
   RegisterPixelMapperInternal(result, new UArrangementMapper());
   RegisterPixelMapperInternal(result, new VerticalMapper());
   RegisterPixelMapperInternal(result, new MirrorPixelMapper());
-  return result;
+  RegisterPixelMapperInternal(result, new CubePixelMapper()); return result;
 }
 
 static MapperByName *GetMapperMap() {
@@ -336,3 +371,4 @@ const PixelMapper *FindPixelMapper(const char *name,
   return mapper;
 }
 }  // namespace rgb_matrix
+
